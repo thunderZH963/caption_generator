@@ -1,8 +1,9 @@
-import cPickle as pickle
+import _pickle as cPickle
 from keras.preprocessing import image
 from vgg16 import VGG16
 import numpy as np 
-from keras.applications.imagenet_utils import preprocess_input	
+from keras.applications.imagenet_utils import preprocess_input
+import pickle
 
 counter = 0
 
@@ -20,29 +21,35 @@ def load_encoding_model():
 def get_encoding(model, img):
 	global counter
 	counter += 1
-	image = load_image('Flicker8k_Dataset/'+str(img))
+	print('../Flicker8k_Dataset/'+str(img))
+	image = load_image('../Flicker8k_Dataset/'+str(img))
 	pred = model.predict(image)
 	pred = np.reshape(pred, pred.shape[1])
-	print "Encoding image: "+str(counter)
-	print pred.shape
+	print("Encoding image: "+str(counter))
+	print(pred.shape)
 	return pred
 
 def prepare_dataset(no_imgs = -1):
-	f_train_images = open('Flickr8k_text/Flickr_8k.trainImages.txt','rb')
-	train_imgs = f_train_images.read().strip().split('\n') if no_imgs == -1 else f_train_images.read().strip().split('\n')[:no_imgs]
+	f_train_images = open('../Flickr8k_text/Flickr_8k.trainImages.txt','rb')
+
+	if no_imgs == -1:
+		train_imgs = f_train_images.read().strip().split('\n'.encode('utf-8'))
+	else:
+		f_train_images.read().strip().split('\n')[:no_imgs]
+
 	f_train_images.close()
 
-	f_test_images = open('Flickr8k_text/Flickr_8k.testImages.txt','rb')
-	test_imgs = f_test_images.read().strip().split('\n') if no_imgs == -1 else f_test_images.read().strip().split('\n')[:no_imgs]
+	f_test_images = open('../Flickr8k_text/Flickr_8k.testImages.txt','rb')
+	test_imgs = f_test_images.read().strip().split('\n'.encode('utf-8')) if no_imgs == -1 else f_test_images.read().strip().split('\n'.encode('utf-8'))[:no_imgs]
 	f_test_images.close()
 
-	f_train_dataset = open('Flickr8k_text/flickr_8k_train_dataset.txt','wb')
+	f_train_dataset = open('../Flickr8k_text/flickr_8k_train_dataset.txt','w')
 	f_train_dataset.write("image_id\tcaptions\n")
 
-	f_test_dataset = open('Flickr8k_text/flickr_8k_test_dataset.txt','wb')
+	f_test_dataset = open('../Flickr8k_text/flickr_8k_test_dataset.txt','w')
 	f_test_dataset.write("image_id\tcaptions\n")
 
-	f_captions = open('Flickr8k_text/Flickr8k.token.txt', 'rb')
+	f_captions = open('../Flickr8k_text/Flickr8k.token.txt', 'r')
 	captions = f_captions.read().strip().split('\n')
 	data = {}
 	for row in captions:
@@ -59,22 +66,29 @@ def prepare_dataset(no_imgs = -1):
 
 	c_train = 0
 	for img in train_imgs:
+		img = str(img, 'utf-8')
 		encoded_images[img] = get_encoding(encoding_model, img)
 		for capt in data[img]:
 			caption = "<start> "+capt+" <end>"
 			f_train_dataset.write(img+"\t"+caption+"\n")
 			f_train_dataset.flush()
 			c_train += 1
+		if c_train == 10:
+			break
+
 	f_train_dataset.close()
 
 	c_test = 0
 	for img in test_imgs:
+		img = str(img, 'utf-8')
 		encoded_images[img] = get_encoding(encoding_model, img)
 		for capt in data[img]:
 			caption = "<start> "+capt+" <end>"
 			f_test_dataset.write(img+"\t"+caption+"\n")
 			f_test_dataset.flush()
 			c_test += 1
+		if c_test == 10:
+			break
 	f_test_dataset.close()
 	with open( "encoded_images.p", "wb" ) as pickle_f:
 		pickle.dump( encoded_images, pickle_f )  
@@ -82,5 +96,5 @@ def prepare_dataset(no_imgs = -1):
 
 if __name__ == '__main__':
 	c_train, c_test = prepare_dataset()
-	print "Training samples = "+str(c_train)
-	print "Test samples = "+str(c_test)
+	print("Training samples = "+str(c_train))
+	print("Test samples = "+str(c_test))

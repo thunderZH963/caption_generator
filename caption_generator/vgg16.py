@@ -27,11 +27,13 @@ from keras.applications.imagenet_utils import decode_predictions
 from keras.applications.imagenet_utils import preprocess_input
 from keras.applications.imagenet_utils import _obtain_input_shape
 from keras.engine.topology import get_source_inputs
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels.h5'
+#WEIGHTS_PATH = "./vgg16_model/vgg16_weights_tf_dim_ordering_tf_kernels.h5"
 WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'
-
+#WEIGHTS_PATH_NO_TOP = "./vgg16_model/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
 
 def VGG16(include_top=True, weights='imagenet',
           input_tensor=None, input_shape=None,
@@ -159,14 +161,15 @@ def VGG16(include_top=True, weights='imagenet',
 
     # load weights
     if weights == 'imagenet':
-        if include_top:
-            weights_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels.h5',
-                                    WEIGHTS_PATH,
-                                   )
-        else:
-            weights_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5',
-                                    WEIGHTS_PATH_NO_TOP,
-                                    cache_subdir='models')
+        #if include_top:
+        #    weights_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels.h5',
+        #                            WEIGHTS_PATH,
+        #                           )
+        #else:
+        #    weights_path = get_file('vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5',
+        #                            WEIGHTS_PATH_NO_TOP,
+        #                            cache_subdir='models')
+        weights_path = "/Users/zhanghua/.keras/models/vgg16_weights_tf_dim_ordering_tf_kernels.h5"
         model.load_weights(weights_path)
         if K.backend() == 'theano':
             layer_utils.convert_all_kernels_in_model(model)
@@ -196,7 +199,7 @@ def VGG16(include_top=True, weights='imagenet',
 if __name__ == '__main__':
     model = VGG16(include_top=True, weights='imagenet')
 
-    img_path = 'elephant.jpg'
+    img_path = '667626_18933d713e.jpg'
     img = image.load_img(img_path, target_size=(224, 224))
     x = image.img_to_array(img)
     x = np.expand_dims(x, axis=0)
